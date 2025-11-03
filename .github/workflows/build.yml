@@ -17,11 +17,12 @@ jobs:
           python-version: "3.10"
 
       - name: Install Buildozer & deps
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip zip unzip openjdk-17-jdk
-          pip install --upgrade pip
-          pip install buildozer cython virtualenv
+  run: |
+    sudo apt update
+    sudo apt install -y python3-pip zip unzip openjdk-17-jdk
+    pip install --upgrade pip
+    pip install buildozer cython virtualenv
+    sudo apt install -y android-sdk android-sdk-platform-tools android-sdk-build-tools
 
       - name: Build the APK
         run: |
