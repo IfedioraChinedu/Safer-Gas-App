@@ -25,7 +25,6 @@ jobs:
 
       - name: Build the APK
         run: |
-          cd "Safer gas"  # 👈 your exact project folder name
           buildozer android debug
 
       - name: Upload APK artifact
