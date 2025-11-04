@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout code
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 3️⃣ Create virtualenv and install Buildozer
+      # 3️⃣ Create virtualenv & install Buildozer
       - name: Install Buildozer & dependencies
         run: |
           python -m venv venv
@@ -34,21 +34,34 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # 5️⃣ Set up Android SDK
+      # 5️⃣ Set up Android SDK (minimal)
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
           api-level: 33
-          build-tools: 33.0.2
+          build-tools: 36.1.0
           cmdline-tools: latest
 
-      # 6️⃣ Build APK
+      # 6️⃣ Accept licenses automatically
+      - name: Accept Android licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+      # 7️⃣ Install only necessary SDK packages for Buildozer
+      - name: Install required Android packages
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-33" \
+            "platform-tools" \
+            "build-tools;36.1.0"
+
+      # 8️⃣ Build the APK
       - name: Build APK
         run: |
           source venv/bin/activate
           buildozer android debug
 
-      # 7️⃣ Upload APK artifact
+      # 9️⃣ Upload the APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
