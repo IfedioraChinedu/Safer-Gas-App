@@ -1,0 +1,35 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2️⃣ Build Docker image
+      - name: Build Docker image
+        run: docker build -t my-buildozer .
+
+      # 3️⃣ Run Buildozer inside Docker to build APK
+      - name: Build APK
+        run: |
+          docker run --rm \
+            -v $PWD:/home/builder/app \
+            -w /home/builder/app \
+            my-buildozer \
+            android debug
+
+      # 4️⃣ Upload APK artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safergas-apk
+          path: "bin/*.apk"
