@@ -8,8 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Let Buildozer auto-accept Android SDK licenses
+      ANDROIDSDK_ACCEPT_LICENSES: "yes"
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -19,7 +22,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 3️⃣ Create virtualenv & install Buildozer
+      # 3️⃣ Create virtualenv and install Buildozer
       - name: Install Buildozer & dependencies
         run: |
           python -m venv venv
@@ -27,41 +30,17 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-      # 4️⃣ Set up Java
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 17
+      # 4️⃣ Optional: clean previous SDK (avoid partial installs)
+      - name: Clean old Android SDK
+        run: rm -rf .buildozer/android/platform/android-sdk || true
 
-      # 5️⃣ Set up Android SDK (minimal)
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 33
-          build-tools: 36.1.0
-          cmdline-tools: latest
-
-      # 6️⃣ Accept licenses automatically
-      - name: Accept Android licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-
-      # 7️⃣ Install only necessary SDK packages for Buildozer
-      - name: Install required Android packages
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-33" \
-            "platform-tools" \
-            "build-tools;36.1.0"
-
-      # 8️⃣ Build the APK
+      # 5️⃣ Build APK using Buildozer
       - name: Build APK
         run: |
           source venv/bin/activate
           buildozer android debug
 
-      # 9️⃣ Upload the APK artifact
+      # 6️⃣ Upload APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
