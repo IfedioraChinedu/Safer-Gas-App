@@ -9,28 +9,48 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # 3️⃣ Create virtualenv and install Buildozer
       - name: Install Buildozer & dependencies
         run: |
-          sudo apt update
-          sudo apt install -y python3-pip zip unzip openjdk-17-jdk
+          python -m venv venv
+          source venv/bin/activate
           pip install --upgrade pip
           pip install buildozer cython virtualenv
-          sudo apt install -y android-sdk android-sdk-platform-tools android-sdk-build-tools
 
-      - name: Build the APK
+      # 4️⃣ Set up Java
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # 5️⃣ Set up Android SDK
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 33
+          build-tools: 33.0.2
+          cmdline-tools: latest
+
+      # 6️⃣ Build APK
+      - name: Build APK
         run: |
+          source venv/bin/activate
           buildozer android debug
 
+      # 7️⃣ Upload APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: safergas-apk
-          path: "Safer gas/bin/*.apk"
+          path: "bin/*.apk"
