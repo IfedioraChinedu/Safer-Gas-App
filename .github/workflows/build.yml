@@ -9,7 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # Let Buildozer auto-accept Android SDK licenses
       ANDROIDSDK_ACCEPT_LICENSES: "yes"
     steps:
       # 1️⃣ Checkout repository
@@ -22,7 +21,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 3️⃣ Create virtualenv and install Buildozer
+      # 3️⃣ Create virtualenv & install Buildozer
       - name: Install Buildozer & dependencies
         run: |
           python -m venv venv
@@ -30,17 +29,33 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-      # 4️⃣ Optional: clean previous SDK (avoid partial installs)
-      - name: Clean old Android SDK
-        run: rm -rf .buildozer/android/platform/android-sdk || true
+      # 4️⃣ Download Android command-line tools
+      - name: Download Android SDK command-line tools
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-      # 5️⃣ Build APK using Buildozer
+      # 5️⃣ Install required Android SDK packages and accept licenses
+      - name: Install Android SDK packages
+        run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
+
+      # 6️⃣ Build the APK with Buildozer
       - name: Build APK
         run: |
+          export ANDROIDSDK=$HOME/android-sdk
+          python -m venv venv
           source venv/bin/activate
+          pip install --upgrade pip
+          pip install buildozer cython virtualenv
           buildozer android debug
 
-      # 6️⃣ Upload APK artifact
+      # 7️⃣ Upload APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
