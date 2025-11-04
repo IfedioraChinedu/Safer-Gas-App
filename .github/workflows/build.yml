@@ -8,32 +8,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      ANDROIDSDK_ACCEPT_LICENSES: "yes"
+
     steps:
+      # 1️⃣ Checkout the repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install Buildozer & dependencies
+      # 2️⃣ Run Buildozer in Docker
+      - name: Build APK using Docker
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install buildozer cython virtualenv
+          docker run --rm -v $PWD:/app -w /app kivy/buildozer:python3.10 \
+            buildozer android debug
 
-      - name: Clean old Android SDK
-        run: rm -rf .buildozer/android/platform/android-sdk || true
-
-      - name: Build APK
-        run: |
-          source venv/bin/activate
-          buildozer android debug
-
+      # 3️⃣ Upload APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
