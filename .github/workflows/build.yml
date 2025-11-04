@@ -10,24 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout the repository
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2️⃣ Build Docker image
+      # 2️⃣ Build the Docker image
       - name: Build Docker image
         run: docker build -t my-buildozer .
 
-      # 3️⃣ Run Buildozer inside Docker to build APK
+      # 3️⃣ Build the APK using Docker (run as root to fix permissions)
       - name: Build APK
         run: |
-          docker run --rm \
+          docker run --rm -u 0 \
             -v $PWD:/home/builder/app \
             -w /home/builder/app \
             my-buildozer \
             android debug
 
-      # 4️⃣ Upload APK artifact
+      # 4️⃣ Upload the APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
